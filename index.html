@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> Set List </title>
+    <meta charset="utf-8">
+    <script type="text/javascript">
+
+        var songs = new Array;
+
+        function load_data() {
+            request = new XMLHttpRequest();
+            request.open("GET", "https://setlist-php.000webhostapp.com", true);
+            request.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    raw_data = this.responseText;
+                    document.getElementById("serializedData").innerHTML = raw_data;
+                    data = raw_data.substring(raw_data.indexOf("["));
+                    songs = JSON.parse(data);
+                    fill_table();
+                    build_form();
+                } else if (this.readyState == 4) {
+                    alert("Could not load data");
+                }
+            }
+            
+            request.send();
+        }
+
+        function build_form() {
+            all_genres = [];
+            for (i = 0; i < songs.length; i++) {
+                for (j = 0; j < songs[i].Genres.length; j++) {
+                    a_genre = songs[i].Genres[j];
+                    duplicate = false;
+                    for (k = 0; k < all_genres.length; k++) {
+                        if (all_genres[k] == a_genre) {
+                            duplicate = true;
+                        }
+                    }
+                    if (!duplicate) {
+                        all_genres.push(a_genre);
+                    }
+                }
+            }
+
+            for (i = 0; i < all_genres.length; i++) {
+                option_str = "<option value='" + all_genres[i] + "'>" 
+                            + all_genres[i] + "</option>";
+                document.getElementById("genre_select").innerHTML += option_str;
+            } 
+        }
+
+
+
+        function display_songs()  {
+            document.getElementById("display_genres").innerHTML = "Songs: <br>";
+            var elem = document.getElementById("genre_select");
+            var selected_genre = elem.options[elem.selectedIndex].value;
+            for (i = 0; i < songs.length; i++) {
+                for (j = 0; j < songs[i].Genres.length; j++) {
+                    if (songs[i].Genres[j] == selected_genre) {
+                        song_name = songs[i].Title + "<br>";
+                        document.getElementById("display_genres").innerHTML += song_name;
+                    }
+                }
+            }
+        }
+
+        function fill_table() {
+            for (var i = 0; i < songs.length; i++) {
+                table_row = "<tr> <td>" + songs[i].Title + "</td> <td>";
+                for (var j = 0; j < songs[i].Artists.length; j++) {
+                    table_row += songs[i].Artists[j];
+                    if (!(j == songs[i].Artists.length - 1)) {
+                        table_row += ", ";
+                    }
+                }
+                table_row += "</td> <td>";
+                for (var j = 0; j < songs[i].Genres.length; j++) {
+                    table_row += songs[i].Genres[j];
+                    if (!(j == songs[i].Genres.length - 1)) {
+                        table_row += ", ";
+                    }
+                }
+                table_row += "</td> <td> " + songs[i].Year + "</td> </tr>";
+                document.getElementById("userfriendlytable").innerHTML += table_row;
+            }
+        }
+    </script>
+</head>
+
+<body>
+    Serialized Data:
+    <div id="serializedData"> </div> <br>
+    Formated Data:
+    <table id="userfriendlytable" style="width: 100%;"> 
+        <tr align="left">
+            <th> Song Name </th>
+            <th> Artist(s) </th>
+            <th> Genre(s) </th>
+            <th> Year </th>
+        </tr>
+    </table> <br>
+    Genre Selection Form: 
+    <form>
+        <select id="genre_select">
+            
+        </select>
+        <input type="button" id="filter_button" value="Filter" onclick="display_songs()">
+    </form>
+    <div id="display_genres"> Songs: </div>
+    <script type="text/javascript">
+        load_data();
+    </script>
+</body>
+</html>
